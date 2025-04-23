@@ -24,7 +24,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-user_id = st.experimental_get_query_params().get("user_id", [None])[0]
+user_id = st.query_params().get("user_id", [None])[0]
 
 if user_id:
     user = get_user(int(user_id))

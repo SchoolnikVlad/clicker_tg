@@ -4,7 +4,6 @@ from sqlalchemy.orm import sessionmaker
 import datetime
 
 Base = declarative_base()
-engine = create_engine('sqlite:///clicks.db')
 
 class User(Base):
     __tablename__ = 'users'
@@ -15,27 +14,30 @@ class User(Base):
     multiplier = Column(Integer, default=1)
     last_click_time = Column(DateTime)
 
+engine = create_engine('sqlite:///clicks.db')
 Base.metadata.create_all(engine)
-
 Session = sessionmaker(bind=engine)
 
-async def get_user(user_id: int):
+def get_user(user_id: int):
     with Session() as session:
         user = session.query(User).filter(User.user_id == user_id).first()
         if not user:
-            user = User(user_id=user_id, username="Anonymous")
+            user = User(
+                user_id=user_id,
+                username=f"User_{user_id}",
+                last_click_time=datetime.datetime.now()
+            )
             session.add(user)
             session.commit()
         return user
 
-async def update_clicks(user_id: int, clicks: int):
+def update_clicks(user_id: int, clicks: int):
     with Session() as session:
         user = session.query(User).filter(User.user_id == user_id).first()
         user.clicks = clicks
-        user.last_click_time = datetime.datetime.now()
         session.commit()
 
-async def buy_multiplier(user_id: int):
+def buy_multiplier(user_id: int):
     with Session() as session:
         user = session.query(User).filter(User.user_id == user_id).first()
         cost = 50 * user.multiplier
@@ -45,8 +47,3 @@ async def buy_multiplier(user_id: int):
             session.commit()
             return True
         return False
-
-async def get_leaderboard():
-    with Session() as session:
-        users = session.query(User).order_by(User.clicks.desc()).limit(10).all()
-        return users

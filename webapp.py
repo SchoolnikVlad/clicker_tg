@@ -3,6 +3,19 @@ from database import get_user, update_clicks, buy_multiplier
 from auth import verify_webapp_signature
 import os
 
+def main():
+    # Получаем параметры из URL
+    init_data = st.query_params.get("tgWebAppData", None)
+    user_id = st.query_params.get("user_id", None)  # Telegram добавит это автоматически
+
+    if not init_data:
+        st.error("Доступ только через Telegram!")
+        st.stop()
+
+    if not verify_webapp_signature(st.secrets["BOT_TOKEN"], init_data):
+        st.error("Недействительная подпись!")
+        st.stop()
+
 st.set_page_config(
     page_title="Telegram Clicker",
     layout="centered",

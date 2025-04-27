@@ -10,14 +10,14 @@ dp.include_router(router)
 
 @router.message(Command("start"))
 async def start(message: types.Message):
-    webapp_url = f"{config.WEBAPP_URL}?user_id={message.from_user.id}"
+    webapp_url = config.WEBAPP_URL
     await message.answer(
         "🎮 Играть",
         reply_markup=types.ReplyKeyboardMarkup(
             keyboard=[
                 [types.KeyboardButton(
                     text="🎮 Играть",
-                    web_app=types.WebAppInfo(url=webapp_url)
+                    web_app=types.WebAppInfo(url=config.WEBAPP_URL)
                 )]
             ],
             resize_keyboard=True

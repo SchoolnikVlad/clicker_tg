@@ -1,6 +1,7 @@
 import streamlit as st
 from database import get_user, update_clicks, buy_multiplier
 from auth import verify_webapp_signature
+import os
 
 st.set_page_config(
     page_title="Telegram Clicker",
@@ -8,18 +9,25 @@ st.set_page_config(
     menu_items=None
 )
 
-# Проверка подписи Telegram
-try:
-    init_data = st.query_params.get("tgWebAppData", None)
-    if not init_data or not verify_webapp_signature(st.secrets["BOT_TOKEN"], init_data):
-        st.error("Доступ запрещен!")
-        st.stop()
-except:
-    st.error("Ошибка проверки авторизации")
-    st.stop()
+# Режим разработки: пропускаем проверку подписи локально
+IS_LOCAL = os.environ.get("IS_LOCAL", False)
 
-# Получение user_id
+if not IS_LOCAL:
+    # Проверка подписи Telegram
+    try:
+        init_data = st.query_params.get("tgWebAppData", None)
+        if not init_data or not verify_webapp_signature(st.secrets["BOT_TOKEN"], init_data):
+            st.error("Доступ запрещен!")
+            st.stop()
+    except Exception as e:
+        st.error(f"Ошибка проверки авторизации: {str(e)}")
+        st.stop()
+
+# Получение user_id (для локального тестирования задайте вручную)
 user_id = st.query_params.get("user_id", None)
+if IS_LOCAL:
+    user_id = 12345  # Тестовый user_id для локального запуска
+
 if not user_id:
     st.error("user_id не найден")
     st.stop()
@@ -27,8 +35,8 @@ if not user_id:
 try:
     user_id = int(user_id)
     user = get_user(user_id)
-except:
-    st.error("Ошибка авторизации")
+except Exception as e:
+    st.error(f"Ошибка авторизации: {str(e)}")
     st.stop()
 
 # Интерфейс
